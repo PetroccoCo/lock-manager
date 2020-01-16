@@ -144,7 +144,7 @@ def landingPage() {
 
 def setupPage() {
   dynamicPage(name: 'setupPage', title: 'Setup Lock', nextPage: 'mainPage', uninstall: true) {
-    section('Choose devices for this lock') {
+    section('Setup User') {
       input(name: 'userName', title: 'Name for User', required: true, image: 'https://images.lockmanager.io/app/v1/images/user.png')
       input(name: 'userCode', type: 'text', title: userCodeInputTitle(), required: false, defaultValue: settings.'userCode', refreshAfterSelection: true)
       input(name: 'userSlot', type: 'enum', options: parent.availableSlots(settings.userSlot), title: 'Select slot', required: true, refreshAfterSelection: true )

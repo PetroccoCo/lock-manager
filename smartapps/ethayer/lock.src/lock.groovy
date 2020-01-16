@@ -232,7 +232,7 @@ def makeRequest() {
     lock.requestCode(requestSlot)
   } else if (!withinAllowed()){
     debugger('Codes not retreived in reasonable time')
-    debugger('Is the lock requestCode avalible for this lock?')
+    debugger('Is the lock requestCode available for this lock?')
     state.refreshComplete = true
 
     // run a poll and reset everthing
@@ -291,7 +291,7 @@ def updateCode(event) {
   def data = new JsonSlurper().parseText(event.data)
   def slot = event.value.toInteger()
   def code
-  if (data.code.isNumber()) {
+  if (data.code.isInteger()) {
     code = data.code
   } else {
     // It's easier on logic if code is empty to be null
@@ -574,6 +574,7 @@ def codeInform(slot, code) {
           userApp.send(message)
         }
       } else {
+        message = "${userApp.userName} should have access to ${lock.label} but the code is wrong!(${userCode}:${code})"
         // user should have access but the code is wrong!
       }
     } else {
