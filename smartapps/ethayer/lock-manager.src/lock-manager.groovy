@@ -10,7 +10,6 @@ definition(
 )
 import groovy.json.JsonSlurper
 import groovy.json.JsonBuilder
-include 'asynchttp_v1'
 
 preferences {
   page name: 'mainPage', title: 'Installed', install: true, uninstall: true, submitOnChange: true
@@ -25,11 +24,9 @@ preferences {
 def mainPage() {
   dynamicPage(name: 'mainPage', install: true, uninstall: true, submitOnChange: true) {
     section('Create') {
-      log.debug state.accountToken
       app(name: 'locks', appName: 'Lock', namespace: 'ethayer', title: 'New Lock', multiple: true, image: 'https://images.lockmanager.io/app/v1/images/new-lock.png')
       app(name: 'lockUsers', appName: 'Lock User', namespace: 'ethayer', title: 'New User', multiple: true, image: 'https://images.lockmanager.io/app/v1/images/user-plus.png')
       app(name: 'keypads', appName: 'Keypad', namespace: 'ethayer', title: 'New Keypad', multiple: true, image: 'https://images.lockmanager.io/app/v1/images/keypad-plus.png')
-      app(name: 'lockAPI', appName: 'Lock API', namespace: 'ethayer', title: 'New Api Access', multiple: false, image: 'https://images.lockmanager.io/app/v1/images/keypad-plus.png')
     }
     section('Locks') {
       def lockApps = getLockApps()
@@ -55,12 +52,6 @@ def mainPage() {
         href(name: 'toKeypadPage', page: 'keypadPage', title: 'Keypad Routines (optional)', image: 'https://images.lockmanager.io/app/v1/images/keypad.png')
       }
     }
-
-    section('Big Mirror') {
-      paragraph 'Big Mirror Switches:'
-      input(name: 'theSwitches', title: 'Which Switches?', type: 'capability.switch', multiple: true, required: true)
-    }
-
     section('Advanced', hideable: true, hidden: true) {
       input(name: 'overwriteMode', title: 'Overwrite?', type: 'bool', required: true, defaultValue: true, description: 'Overwrite mode automatically deletes codes not in the users list')
       input(name: 'enableDebug', title: 'Enable IDE debug messages?', type: 'bool', required: true, defaultValue: false, description: 'Show activity from Lock Manger in logs for debugging.')
@@ -103,9 +94,6 @@ def lockInfoPage(params) {
               }
               if (data.codeState == 'refresh') {
                 para = para +'\nPending refresh...'
-              }
-              if (data.control) {
-                para = para +"\nControl: ${data.control}"
               }
               paragraph para, image: image
             }
@@ -275,23 +263,6 @@ def updated() {
 def initialize() {
   def children = getChildApps()
   log.debug "there are ${children.size()} lock users"
-
-  subscribe(theSwitches, "switch.on", switchOnHandler)
-  subscribe(theSwitches, "switch.off", switchOffHandler)
-}
-
-def getLockAppById(id) {
-  def lockApp = false
-  def lockApps = getLockApps()
-  if (lockApps) {
-    def i = 0
-    lockApps.each { app ->
-      if (app.lock.id == id) {
-        lockApp = app
-      }
-    }
-  }
-  return lockApp
 }
 
 def getLockAppByIndex(params) {
@@ -432,18 +403,6 @@ def anyoneHome(sensors) {
   result
 }
 
-def apiApp() {
-  def app = false
-
-  def children = getChildApps()
-  children.each { child ->
-    if (child.enableAPI) {
-      app = child
-    }
-  }
-  return app
-}
-
 def executeHelloPresenceCheck(routines) {
   if (userNoRunPresence && userDoRunPresence == null) {
     if (!anyoneHome(userNoRunPresence)) {
@@ -460,34 +419,4 @@ def executeHelloPresenceCheck(routines) {
   } else {
     location.helloHome.execute(routines)
   }
-}
-
-def setAccountToken(token) {
-  state.accountToken = token
-}
-
-def switchOnHandler(evt) {
-  def params = [
-    uri: 'https://www.lockmanager.io/',
-    path: '/events/switch-change',
-    body: [
-      token: state.accountToken,
-      key: evt.deviceId,
-      state: 'on'
-    ]
-  ]
-  asynchttp_v1.post(processResponse, params)
-}
-
-def switchOffHandler(evt) {
-  def params = [
-    uri: 'https://www.lockmanager.io/',
-    path: '/events/switch-change',
-    body: [
-      token: state.accountToken,
-      key: evt.deviceId,
-      state: 'off'
-    ]
-  ]
-  asynchttp_v1.post(processResponse, params)
 }
