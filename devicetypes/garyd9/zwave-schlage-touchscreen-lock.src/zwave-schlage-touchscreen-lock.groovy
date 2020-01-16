@@ -503,7 +503,7 @@ def zwaveEvent(UserCodeReport cmd)
 {
 	def result = []
 	def name = "code$cmd.userIdentifier"
-	def code = cmd.code
+	def code = cmd.code.trim()
 	def map = [:]
 	if (cmd.userIdStatus == UserCodeReport.USER_ID_STATUS_OCCUPIED ||
 		(cmd.userIdStatus == UserCodeReport.USER_ID_STATUS_STATUS_NOT_AVAILABLE && cmd.user && code != "**********"))
